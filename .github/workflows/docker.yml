@@ -28,5 +28,5 @@ jobs:
           context: .
           push: true
           tags:  |
-            ghcr.io/${{ github.pepejee }}/customai:${{ github.ref_name }}
-            ghcr.io/${{ github.pepejee }}/customai:latest
+            ghcr.io/${{ github.repository_owner }}/customai:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/customai:latest
