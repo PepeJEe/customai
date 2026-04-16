@@ -1,0 +1,5 @@
+OLLAMA_URL = ""
+MODEL_NAME = "gemma4:2b"
+SYSTEM_PROMPT = ""
+ha_url = ""
+ha_token = ""
