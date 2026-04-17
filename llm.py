@@ -15,4 +15,5 @@ async def receive_request(messages):
         result = response.json()
         if "message" not in result:
             return f"Error from Ollama: {result}"
+        print(result)
         return result["message"]["content"]
