@@ -1,5 +1,5 @@
 OLLAMA_URL = "http://ollama:11434/api/chat"
-MODEL_NAME = "gwen2.5:3b"
+MODEL_NAME = "qwen2.5:3b"
 SYSTEM_PROMPT = "You are assistant named assistant_test"
 ha_url = ""
 ha_token = ""
