@@ -1,5 +1,5 @@
 OLLAMA_URL = "http://ollama:11434/api/chat"
 MODEL_NAME = "qwen2.5:3b"
-SYSTEM_PROMPT = "You are assistant named assistant_test"
+SYSTEM_PROMPT = "You are assistant named assistant_test. Act stupid like a stupid funny human being. Don't act as an assistant"
 ha_url = ""
 ha_token = ""
