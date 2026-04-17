@@ -15,7 +15,7 @@ async def chat(request: ChatRequest):
     return {
         "choices": [
             {
-            "messages": {
+            "message": {
                 "role": "assistant",
                 "content": response
             },

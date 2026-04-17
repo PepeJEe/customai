@@ -7,9 +7,12 @@ async def receive_request(messages):
             OLLAMA_URL,
             json={
                 "model": MODEL_NAME,
-                "messages": full_messages,
+                "message": full_messages,
                 "stream": False
             }
         )
+
         result = response.json()
-        return result["messages"]["content"]       
+        if "message" not in result:
+            return f"Error from Ollama: {result}"
+        return result["messages"]["content"]
