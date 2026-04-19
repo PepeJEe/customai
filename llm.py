@@ -18,7 +18,7 @@ async def receive_request(messages):
             )
 
             result = response.json()
-            logger.info("Got response from Ollama: {content[:50]}")
+            logger.info(f"Got response from Ollama: {content[:50]}")
 
         return result["message"]["content"]
     

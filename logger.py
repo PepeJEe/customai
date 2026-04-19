@@ -17,7 +17,7 @@ file_handler = RotatingFileHandler(
 )
 file_handler.setLevel(logging.INFO)
 
-formatter = logging.Formatter("%(asctime)s | %(levelname)8s | %(filename)s - %(lineno)8d | %(message)s")
+formatter = logging.Formatter("%(asctime)s | %(levelname)8s | %(filename)s - %(lineno)d | %(message)s")
 console_handler.setFormatter(formatter)
 file_handler.setFormatter(formatter)
 
