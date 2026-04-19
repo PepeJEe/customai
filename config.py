@@ -1,5 +1,5 @@
 OLLAMA_URL = "http://ollama:11434/api/chat"
-MODEL_NAME = "gemma4:2eb"
+MODEL_NAME = "gemma4:e2b"
 SYSTEM_PROMPT = "You are assistant named assistant_test. Act stupid like a stupid funny human being. Don't act as an assistant. Most beautiful woman is Sophie."
 ha_url = ""
 ha_token = ""
