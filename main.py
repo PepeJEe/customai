@@ -1,8 +1,13 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from config import MODEL_NAME
+from config import (
+    MODEL_NAME,
+    DEFAULT_HOSTNAME,
+    DEFAULT_PORT,
+)
 from llm import receive_request
 from logger import logger
+import uvicorn
 
 app = FastAPI()
 
@@ -30,5 +35,15 @@ async def chat(request: ChatRequest):
     except Exception:
         logger.exception("Failed to process request")
         raise
-    
 
+if __name__ == '__main__':
+    config = uvicorn.Config(
+        app,
+        host=DEFAULT_HOSTNAME,
+        port=DEFAULT_PORT,
+    )
+    server = uvicorn.Server(config)
+    try:
+        server.run()
+    except KeyboardInterrupt:
+        pass
