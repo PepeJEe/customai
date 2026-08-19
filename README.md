@@ -1,153 +1,214 @@
 # CustomAI
 
-A lightweight **OpenAI-compatible API wrapper for Ollama**, built with FastAPI.
+**A lightweight OpenAI-compatible REST API wrapper for locally hosted Ollama models.**
 
-CustomAI exposes a `/v1/chat/completions` endpoint that accepts chat messages in an OpenAI-style format and forwards them to an Ollama model. A configurable system prompt is automatically added to every request.
+> ⚠️ **Work in Progress / Learning Project**
+>
+> CustomAI is an unfinished personal project created primarily for learning and experimentation with **FastAPI, REST APIs, asynchronous HTTP communication, Ollama, Docker, and OpenAI-compatible APIs**.
+>
+> It is **not intended to be production-ready**.
 
-## Features
+---
 
-* ⚡ FastAPI-based API
-* 🤖 Ollama backend
-* 🔌 OpenAI-compatible `/v1/chat/completions` endpoint
-* 🐳 Docker support
-* ⚙️ Simple configuration
-* 📝 Request and response logging
-* 🧠 Custom system prompt
-* 🔄 Async HTTP requests using `httpx`
+## Overview
+
+CustomAI provides a simple HTTP API around [Ollama](https://ollama.com/), allowing applications that support OpenAI-compatible APIs to communicate with a locally hosted language model through a custom FastAPI service.
+
+The project exposes a `/v1/chat/completions` endpoint that accepts chat messages in an OpenAI-style format, adds a configurable system prompt, sends the conversation to Ollama, and returns the generated response.
+
+The primary purpose of the project is educational: to explore how an AI service can be built around a REST API and how applications communicate with locally hosted language models.
+
+---
 
 ## Architecture
 
 ```text
-Client
-  │
-  │ POST /v1/chat/completions
-  ▼
-┌─────────────────┐
-│    CustomAI     │
-│     FastAPI     │
-└────────┬────────┘
-         │
-         │ Ollama API
-         ▼
-┌─────────────────┐
-│     Ollama      │
-│  Local LLM      │
-└─────────────────┘
+┌──────────────────────┐
+│      API Client      │
+│                      │
+│ OpenAI-compatible   │
+│ client / application │
+└──────────┬───────────┘
+           │
+           │ POST /v1/chat/completions
+           ▼
+┌──────────────────────┐
+│      CustomAI        │
+│                      │
+│       FastAPI        │
+│    REST API layer    │
+└──────────┬───────────┘
+           │
+           │ HTTP
+           ▼
+┌──────────────────────┐
+│        Ollama        │
+│                      │
+│     Local LLM        │
+└──────────────────────┘
 ```
 
-## Requirements
+### Request flow
 
-* Python 3.12+
-* Ollama
-* An Ollama model
+1. A client sends a request to `/v1/chat/completions`.
+2. CustomAI receives and validates the request.
+3. The configured system prompt is added to the conversation.
+4. CustomAI sends the conversation to Ollama.
+5. Ollama generates the response using the configured model.
+6. CustomAI returns the response using an OpenAI-style format.
 
-Alternatively, CustomAI can be run using Docker.
+---
+
+## Features
+
+* **FastAPI REST API**
+* **Ollama integration**
+* **OpenAI-compatible chat-completions endpoint**
+* **Configurable system prompt**
+* **Asynchronous HTTP communication with `httpx`**
+* **Application logging**
+* **Docker support**
+* Simple and lightweight architecture
+* Compatible with clients that support custom OpenAI API endpoints
+
+---
+
+## Tech Stack
+
+| Technology | Purpose                         |
+| ---------- | ------------------------------- |
+| Python     | Core programming language       |
+| FastAPI    | REST API framework              |
+| Uvicorn    | ASGI application server         |
+| Pydantic   | Request validation              |
+| httpx      | Asynchronous HTTP communication |
+| Ollama     | Local LLM inference             |
+| Docker     | Containerization                |
+
+---
+
+# Getting Started
+
+## Prerequisites
+
+Before running CustomAI locally, make sure you have:
+
+* Python 3 installed
+* Ollama installed and running
+* An Ollama-compatible language model
+* Git
+
+---
 
 ## Installation
 
-### Clone the repository
+Clone the repository:
 
 ```bash
 git clone https://github.com/PepeJEe/customai.git
 cd customai
 ```
 
-### Install dependencies
+The repository includes a `setup.sh` script that automatically:
+
+1. Creates a Python virtual environment
+2. Activates the virtual environment
+3. Installs the required dependencies
+4. Starts the CustomAI server
+
+Make the script executable:
 
 ```bash
-pip install -r requirements.txt
+chmod +x setup.sh
 ```
 
-### Configure Ollama
+Then run it:
 
-The default configuration is:
+```bash
+./setup.sh
+```
+
+### What `setup.sh` does
+
+```bash
+#!/bin/bash
+
+set -e
+
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Install requirements
+pip install -r requirements.txt
+
+# Execute the server
+./main.py
+```
+
+> **Note:** `setup.sh` creates the virtual environment every time it is executed. If the `venv` directory already exists, Python will reuse the existing environment.
+
+---
+
+## Ollama Configuration
+
+CustomAI communicates with Ollama using the configuration defined in `config.py`.
+
+For example:
 
 ```python
 OLLAMA_URL = "http://ollama:11434/api/chat"
 MODEL_NAME = "gemma4:e2b"
+SYSTEM_PROMPT = "Your system prompt here"
 ```
 
-These values can be changed in `config.py`.
-
-Make sure the configured model exists in Ollama:
+Make sure the configured model is available in Ollama:
 
 ```bash
 ollama pull gemma4:e2b
 ```
 
-### Run CustomAI
+If Ollama is running directly on your host machine rather than in Docker, change `OLLAMA_URL` accordingly.
 
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8010
+For example:
+
+```python
+OLLAMA_URL = "http://localhost:11434/api/chat"
 ```
 
-The API will be available at:
+---
+
+## Running the API
+
+After running:
+
+```bash
+./setup.sh
+```
+
+the API will be available at:
 
 ```text
 http://localhost:8010
 ```
 
-## Docker
-
-The repository includes a `Dockerfile` that runs the application on port `8010`.
-
-Build the image:
-
-```bash
-docker build -t customai .
-```
-
-Run it:
-
-```bash
-docker run -p 8010:8010 customai
-```
-
-When running CustomAI and Ollama in separate containers, the `OLLAMA_URL` should point to the Ollama container, for example:
+FastAPI's interactive API documentation is available at:
 
 ```text
-http://ollama:11434/api/chat
+http://localhost:8010/docs
 ```
 
-Make sure both containers are connected to the same Docker network.
+---
 
-## Configuration
+# API
 
-Configuration is currently located in `config.py`.
+## `POST /v1/chat/completions`
 
-```python
-OLLAMA_URL = "http://ollama:11434/api/chat"
-MODEL_NAME = "gemma4:e2b"
+CustomAI provides an OpenAI-style chat-completions endpoint.
 
-SYSTEM_PROMPT = "Your system prompt here"
-
-ha_url = ""
-ha_token = ""
-```
-
-### Options
-
-| Setting         | Description                                   |
-| --------------- | --------------------------------------------- |
-| `OLLAMA_URL`    | URL of the Ollama `/api/chat` endpoint        |
-| `MODEL_NAME`    | Ollama model to use                           |
-| `SYSTEM_PROMPT` | System prompt prepended to every conversation |
-| `ha_url`        | Home Assistant URL                            |
-| `ha_token`      | Home Assistant authentication token           |
-
-> **Note:** Home Assistant configuration is currently present in the configuration file but is not used by the chat request implementation.
-
-## API
-
-### Chat Completions
-
-**Endpoint**
-
-```http
-POST /v1/chat/completions
-```
-
-**Request**
+### Example request
 
 ```json
 {
@@ -161,7 +222,7 @@ POST /v1/chat/completions
 }
 ```
 
-**Example with cURL**
+### cURL
 
 ```bash
 curl http://localhost:8010/v1/chat/completions \
@@ -177,7 +238,7 @@ curl http://localhost:8010/v1/chat/completions \
   }'
 ```
 
-### Response
+### Example response
 
 ```json
 {
@@ -193,11 +254,13 @@ curl http://localhost:8010/v1/chat/completions \
 }
 ```
 
-## Using with OpenAI-Compatible Clients
+---
 
-Because CustomAI exposes an OpenAI-style chat completions endpoint, it can be used as a custom API endpoint by applications that support OpenAI-compatible providers.
+# OpenAI-Compatible Clients
 
-For example:
+Because CustomAI exposes an OpenAI-style endpoint, it can be used with clients that allow a custom API base URL.
+
+For example, using the OpenAI Python client:
 
 ```python
 from openai import OpenAI
@@ -220,7 +283,47 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-## Project Structure
+The API key is currently not used for authentication by CustomAI.
+
+---
+
+# Docker
+
+CustomAI also includes Docker configuration for running the application in a containerized environment.
+
+Build the image:
+
+```bash
+docker build -t customai .
+```
+
+Run the container:
+
+```bash
+docker run -p 8010:8010 customai
+```
+
+When CustomAI and Ollama run in separate Docker containers, they should be placed on the same Docker network so that CustomAI can communicate with Ollama.
+
+---
+
+# Configuration
+
+Configuration is currently stored in `config.py`.
+
+| Setting         | Description                                  |
+| --------------- | -------------------------------------------- |
+| `OLLAMA_URL`    | URL of the Ollama API                        |
+| `MODEL_NAME`    | Model used for inference                     |
+| `SYSTEM_PROMPT` | System prompt added to conversations         |
+| `ha_url`        | Reserved Home Assistant configuration        |
+| `ha_token`      | Reserved Home Assistant authentication token |
+
+> **Note:** The Home Assistant configuration is currently present for future experimentation and is not part of the current chat implementation.
+
+---
+
+# Project Structure
 
 ```text
 customai/
@@ -233,74 +336,170 @@ customai/
 ├── logger.py
 ├── main.py
 ├── requirements.txt
+├── setup.sh
 └── README.md
 ```
 
-### `main.py`
+### Components
 
-Defines the FastAPI application and exposes the `/v1/chat/completions` endpoint.
+**`main.py`**
 
-### `llm.py`
+Defines the FastAPI application and API endpoints.
 
-Handles communication with Ollama and converts the incoming conversation into an Ollama chat request.
+**`llm.py`**
 
-### `config.py`
+Handles communication between CustomAI and Ollama using asynchronous HTTP requests.
 
-Contains the Ollama URL, model name, and system prompt.
+**`config.py`**
 
-### `logger.py`
+Contains the Ollama endpoint, model configuration, and system prompt.
+
+**`logger.py`**
 
 Provides application logging.
 
-### `Dockerfile`
+**`Dockerfile`**
 
-Builds a Python 3.12 container and starts the application with Uvicorn.
+Defines the Docker image used to run CustomAI.
 
-## How It Works
+**`docker-compose.yml`**
 
-1. A client sends a request to `/v1/chat/completions`.
-2. CustomAI receives the conversation messages.
-3. The configured system prompt is prepended to the messages.
-4. The resulting conversation is sent to Ollama.
-5. Ollama generates a response using the configured model.
-6. CustomAI returns the response using an OpenAI-style response structure.
+Provides Docker Compose configuration for running the services.
 
-## Limitations
+**`setup.sh`**
 
-This project currently implements a minimal subset of the OpenAI Chat Completions API.
+Automates the local Python environment setup and starts the application.
 
-Currently, the implementation does not provide:
+---
+
+# Current Limitations
+
+CustomAI currently implements only a small subset of the OpenAI API.
+
+The project does **not** currently support:
 
 * Streaming responses
 * Token usage statistics
 * Tool/function calling
-* Vision-specific handling
-* Multiple model routing
+* Full OpenAI API compatibility
 * Authentication
-* Full OpenAI response compatibility
+* Multiple model routing
+* Advanced request parameters
+* Production-grade error handling
+* Production security configuration
 
-The `model` field is accepted by the API, but the configured `MODEL_NAME` in `config.py` is what is actually sent to Ollama.
+The project is intentionally minimal and is expected to change as development continues.
 
-## Development
+---
 
-Run the application in development mode:
+# Learning Goals
 
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8010 --reload
-```
+This project was created as a practical way to learn about:
 
-FastAPI's interactive API documentation is then available at:
+### Backend Development
+
+* Building REST APIs with FastAPI
+* Request validation with Pydantic
+* Running applications with Uvicorn
+* Structuring a Python backend
+
+### AI Integration
+
+* Communicating with locally hosted LLMs
+* Working with the Ollama API
+* Building an abstraction layer around an LLM
+* Understanding chat-based API structures
+
+### API Design
+
+* Understanding REST interfaces
+* Creating OpenAI-compatible endpoints
+* Using custom API base URLs
+* Connecting applications to custom AI backends
+
+### Infrastructure
+
+* Containerizing applications with Docker
+* Connecting services through Docker networking
+* Running an AI backend as a separate service
+
+---
+
+# Future Improvements
+
+Possible future improvements include:
+
+* [ ] Add streaming responses
+* [ ] Improve OpenAI API compatibility
+* [ ] Add authentication
+* [ ] Support configurable model selection
+* [ ] Add token usage information
+* [ ] Add tool/function calling
+* [ ] Move configuration to environment variables
+* [ ] Add automated tests
+* [ ] Improve Docker Compose configuration
+* [ ] Add Home Assistant integration
+* [ ] Improve API documentation
+* [ ] Expand CI/CD checks
+
+---
+
+# Project Status
+
+## 🚧 Unfinished — Learning Project
+
+CustomAI is an **unfinished personal learning project**.
+
+It is not intended to be a production-ready AI platform, API gateway, or replacement for established AI frameworks.
+
+The project exists primarily to experiment with and gain practical experience in:
 
 ```text
-http://localhost:8010/docs
+FastAPI
+   ↓
+REST API
+   ↓
+OpenAI-compatible interface
+   ↓
+Ollama
+   ↓
+Local LLM
 ```
 
-## License
+Because this is an experimental project, the implementation may contain incomplete features, limitations, and breaking changes.
 
-See the repository for licensing information.
+---
 
-## Author
+# Why This Project?
 
-**PepeJEe**
+Rather than interacting with Ollama directly, CustomAI explores what is involved in creating an intermediate API layer between an application and a locally hosted language model.
 
-GitHub: https://github.com/PepeJEe/customai
+The project provides hands-on experience with the complete request flow:
+
+```text
+Application
+     │
+     ▼
+OpenAI-compatible API
+     │
+     ▼
+CustomAI
+     │
+     ▼
+Ollama
+     │
+     ▼
+Local Language Model
+```
+
+Building this layer from scratch makes it possible to experiment with API design, asynchronous communication, request validation, Docker networking, and local LLM integration in a single project.
+
+---
+
+# Author
+
+**Perttu Vierimaa**
+
+GitHub: [@PepeJEe](https://github.com/PepeJEe)
+
+Repository: [PepeJEe/customai](https://github.com/PepeJEe/customai)
