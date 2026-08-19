@@ -1,101 +1,174 @@
 # CustomAI
 
-**An experimental OpenAI-compatible API gateway for working with locally hosted and cloud-based LLMs.**
+**An experimental AI backend for controlling and interacting with Home Assistant using natural language.**
 
 > ⚠️ **Work in Progress / Learning Project**
 >
-> CustomAI is an unfinished personal project created primarily for learning and experimentation with **FastAPI, REST APIs, API compatibility, asynchronous HTTP communication, LLM providers, and Docker**.
+> CustomAI is an unfinished personal project created primarily for learning and experimentation with **LLMs, FastAPI, REST APIs, Home Assistant, asynchronous communication, Docker, and AI tool integration**.
 >
-> The current implementation is intentionally simple and does **not yet provide significant advantages over using Ollama or an LLM provider directly**. The project is a foundation for experimenting with a provider-independent AI API layer.
+> The project is **not production-ready** and many planned features are still incomplete.
 
 ---
 
 ## Overview
 
-CustomAI is a lightweight FastAPI service that exposes an **OpenAI-compatible chat-completions API** and forwards requests to an LLM backend.
+CustomAI is an experimental AI service designed to provide a more flexible, natural-language interface for **Home Assistant**.
 
-The initial implementation was built around **Ollama**, allowing a client to communicate with a locally hosted model through CustomAI.
+The idea is to allow an LLM to interact with a Home Assistant instance through its API, giving users the ability to control and query their smart home without being restricted to the standard Home Assistant interface.
 
-The long-term goal is to turn CustomAI into a more useful abstraction layer that can sit between an application and multiple LLM providers.
+For example, instead of manually navigating Home Assistant, a user could eventually interact with CustomAI using requests such as:
+
+> "Turn off all the lights downstairs."
+
+> "What's the temperature in the bedroom?"
+
+> "I'm going to bed."
+
+> "Make the living room cozy."
+
+CustomAI can then use the LLM to understand the request, inspect the available Home Assistant entities, and perform the appropriate actions.
+
+---
+
+## Concept
+
+The long-term goal is to create an architecture where the LLM acts as a natural-language interface to Home Assistant.
+
+```text
+┌─────────────────┐
+│      User       │
+│                 │
+│ "I'm going to   │
+│      bed."      │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│    CustomAI     │
+│                 │
+│    FastAPI      │
+│   AI Backend    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│       LLM       │
+│                 │
+│   Qwen / Ollama │
+└────────┬────────┘
+         │
+         │ Tool / API calls
+         ▼
+┌─────────────────┐
+│ Home Assistant  │
+│                 │
+│ Lights          │
+│ Sensors         │
+│ Climate         │
+│ Media           │
+│ Switches        │
+└─────────────────┘
+```
+
+The LLM is responsible for interpreting the user's intent, while CustomAI provides the interface between the model and Home Assistant.
+
+---
+
+# Current Architecture
+
+The current implementation is still relatively simple.
+
+```text
+┌──────────────┐
+│              │
+│    Client    │
+│              │
+└──────┬───────┘
+       │
+       │ OpenAI-compatible API
+       ▼
+┌──────────────────┐
+│                  │
+│     CustomAI     │
+│                  │
+│     FastAPI      │
+│                  │
+└────────┬─────────┘
+         │
+         │ LLM request
+         ▼
+┌──────────────────┐
+│      Ollama      │
+│                  │
+│   Qwen / LLM     │
+└──────────────────┘
+```
+
+Home Assistant integration is part of the project's intended architecture and is still under development.
+
+The goal is eventually:
+
+```text
+                         ┌───────────────┐
+                         │ Home Assistant│
+                         │               │
+                         │ Devices       │
+                         │ Sensors       │
+                         │ Automations   │
+                         │ Services      │
+                         └───────▲───────┘
+                                 │
+                          HA API / WebSocket
+                                 │
+                                 │
+┌──────────────┐          ┌──────┴──────┐
+│              │          │             │
+│    User      ├─────────►│  CustomAI   │
+│              │          │             │
+└──────────────┘          │  AI Backend │
+                          └──────┬──────┘
+                                 │
+                                 ▼
+                          ┌─────────────┐
+                          │ LLM Backend │
+                          │             │
+                          │ Qwen/Ollama │
+                          │ Other LLMs  │
+                          └─────────────┘
+```
+
+---
+
+# Why CustomAI?
+
+Home Assistant already provides powerful automation and control capabilities.
+
+The purpose of CustomAI is not to replace Home Assistant, but to provide another way of interacting with it.
+
+Instead of requiring users to know exactly which entity, service, automation, or device they need to interact with, an LLM can translate natural language into the appropriate Home Assistant actions.
 
 For example:
 
 ```text
-                         ┌── Ollama
-                         │    └── Qwen / local models
-                         │
-Client ── OpenAI API ── CustomAI ── OpenAI
-                         │    └── GPT models
-                         │
-                         └── Other providers
+User:
+"Turn off everything except the bedroom light."
+
+             ↓
+
+             LLM
+
+             ↓
+
+Identify relevant entities
+             ↓
+Call Home Assistant services
+             ↓
+
+Lights OFF
+Bedroom light ON
 ```
 
-The application using CustomAI would only need to communicate with one API, while CustomAI could determine which backend should handle each request.
-
----
-
-## Current Architecture
-
-At the moment, CustomAI primarily acts as an API adapter:
-
-```text
-┌──────────────────────┐
-│      API Client      │
-│                      │
-│ OpenAI-compatible   │
-│ client / application │
-└──────────┬───────────┘
-           │
-           │ POST /v1/chat/completions
-           ▼
-┌──────────────────────┐
-│      CustomAI        │
-│                      │
-│       FastAPI        │
-│    REST API layer    │
-└──────────┬───────────┘
-           │
-           │ HTTP
-           ▼
-┌──────────────────────┐
-│        Ollama        │
-│                      │
-│     Local LLM        │
-└──────────────────────┘
-```
-
-This means that CustomAI currently provides an OpenAI-compatible interface on top of Ollama, but does not yet add substantial functionality that would make it preferable to using Ollama directly.
-
-This limitation is intentional: the current version is primarily a **learning exercise and foundation for future development**.
-
----
-
-# Planned Architecture
-
-The intended direction is to make CustomAI a provider-independent gateway.
-
-```text
-                         ┌──────────────┐
-                         │   Ollama     │
-                         │ Local Models │
-                         └──────▲───────┘
-                                │
-                                │
-┌──────────────┐        ┌───────┴───────┐
-│              │        │               │
-│   API Client ├───────►│   CustomAI    │
-│              │        │               │
-└──────────────┘        │ Provider      │
-                        │ Abstraction   │
-                        └───────┬───────┘
-                                │
-                         ┌──────▼───────┐
-                         │    OpenAI    │
-                         │  Cloud LLMs  │
-                         └──────────────┘
-```
-
-This would allow the same application interface to work with different providers without requiring the application itself to implement provider-specific integrations.
+This makes it possible to experiment with more flexible and context-aware smart-home interactions.
 
 ---
 
@@ -106,38 +179,41 @@ This would allow the same application interface to work with different providers
 * **FastAPI REST API**
 * **OpenAI-compatible chat-completions endpoint**
 * **Ollama integration**
+* **Local LLM support**
 * **Configurable system prompt**
-* **Asynchronous HTTP communication with `httpx`**
+* **Asynchronous HTTP communication**
 * **Application logging**
 * **Docker support**
-* Simple API abstraction layer
 
 ### Planned
 
-* Multiple LLM provider support
-* Provider/model routing
+* Home Assistant entity discovery
+* Reading Home Assistant entity states
+* Calling Home Assistant services
+* Natural-language device control
+* LLM tool/function calling
+* Context-aware Home Assistant interactions
+* Multiple LLM providers
 * Local/cloud model selection
-* Automatic provider fallback
-* Centralized configuration
-* Request logging and monitoring
-* Rate limiting
-* Authentication
-* Provider-specific configuration
-* Additional OpenAI-compatible functionality
+* Provider/model routing
+* Conversation history
+* Permission controls for potentially dangerous actions
 
 ---
 
 # Tech Stack
 
-| Technology   | Purpose                         |
-| ------------ | ------------------------------- |
-| **Python**   | Core programming language       |
-| **FastAPI**  | REST API framework              |
-| **Uvicorn**  | ASGI application server         |
-| **Pydantic** | Request validation              |
-| **httpx**    | Asynchronous HTTP communication |
-| **Ollama**   | Local LLM inference             |
-| **Docker**   | Containerization                |
+| Technology         | Purpose                         |
+| ------------------ | ------------------------------- |
+| **Python**         | Core programming language       |
+| **FastAPI**        | REST API framework              |
+| **Uvicorn**        | ASGI application server         |
+| **Pydantic**       | Request validation              |
+| **httpx**          | Asynchronous HTTP communication |
+| **Ollama**         | Local LLM inference             |
+| **Qwen**           | Current LLM experimentation     |
+| **Home Assistant** | Smart-home platform             |
+| **Docker**         | Containerization                |
 
 ---
 
@@ -149,7 +225,8 @@ Before running CustomAI locally, make sure you have:
 
 * Python 3 installed
 * Ollama installed and running
-* An Ollama-compatible language model
+* An Ollama-compatible model
+* A Home Assistant instance if you want to experiment with the Home Assistant integration
 * Git
 
 ---
@@ -163,15 +240,15 @@ git clone https://github.com/PepeJEe/customai.git
 cd customai
 ```
 
-The repository includes a `setup.sh` script that automates the local setup process.
+The repository includes a `setup.sh` script that automates the local Python setup.
 
-Make the script executable:
+Make it executable:
 
 ```bash
 chmod +x setup.sh
 ```
 
-Run it:
+Run the setup script:
 
 ```bash
 ./setup.sh
@@ -181,7 +258,7 @@ The script will:
 
 1. Create a Python virtual environment
 2. Activate the virtual environment
-3. Install the dependencies from `requirements.txt`
+3. Install dependencies from `requirements.txt`
 4. Start the CustomAI server
 
 ### `setup.sh`
@@ -210,7 +287,7 @@ pip install -r requirements.txt
 
 CustomAI currently uses Ollama as its LLM backend.
 
-The configuration is defined in `config.py`.
+Configuration is defined in `config.py`.
 
 Example:
 
@@ -234,25 +311,53 @@ OLLAMA_URL = "http://localhost:11434/api/chat"
 
 ---
 
-# Running the API
+# Home Assistant Integration
 
-After running:
+Home Assistant is one of the main goals of the project.
 
-```bash
-./setup.sh
-```
+The intended integration is for CustomAI to communicate with Home Assistant through its API and eventually allow the LLM to interact with Home Assistant entities and services.
 
-the API will be available at:
+The planned flow is:
 
 ```text
-http://localhost:8010
+User request
+     │
+     ▼
+CustomAI
+     │
+     ▼
+LLM interprets request
+     │
+     ▼
+Determine required Home Assistant action
+     │
+     ▼
+Home Assistant API
+     │
+     ▼
+Device / Entity
 ```
 
-FastAPI's interactive documentation can be accessed at:
+For example:
 
 ```text
-http://localhost:8010/docs
+"Turn on the living room lights."
+
+        ↓
+
+LLM identifies:
+light.living_room
+
+        ↓
+
+CustomAI calls Home Assistant
+
+        ↓
+
+light.turn_on
 ```
+
+The Home Assistant integration is currently **unfinished** and should be considered experimental.
 
 ---
 
@@ -312,7 +417,7 @@ curl http://localhost:8010/v1/chat/completions \
 
 # OpenAI-Compatible Clients
 
-Because CustomAI exposes an OpenAI-compatible endpoint, applications that support a configurable API base URL can communicate with it using an OpenAI-style client.
+CustomAI exposes an OpenAI-compatible endpoint, allowing clients that support a configurable API base URL to communicate with the service.
 
 For example:
 
@@ -339,35 +444,7 @@ print(response.choices[0].message.content)
 
 The API key is currently not used for authentication by CustomAI.
 
----
-
-# Why an OpenAI-Compatible API?
-
-OpenAI-compatible APIs provide a common interface for applications that interact with language models.
-
-Different providers can expose similar request structures, allowing applications to change their backend without completely rewriting their integration.
-
-For example:
-
-```text
-Application
-     │
-     ▼
-OpenAI-compatible interface
-     │
-     ▼
-   CustomAI
-     │
-     ├──────────► Ollama
-     │             │
-     │             └── Qwen
-     │
-     └──────────► OpenAI
-                   │
-                   └── GPT
-```
-
-The goal of CustomAI is to eventually make this abstraction useful by adding functionality on top of the provider APIs.
+The OpenAI-compatible interface is useful because it keeps the client side independent from the specific LLM backend.
 
 ---
 
@@ -400,7 +477,7 @@ Handles communication between CustomAI and the configured LLM backend.
 
 **`config.py`**
 
-Contains the backend URL, model configuration, and system prompt.
+Contains backend configuration, model configuration, and system prompts.
 
 **`logger.py`**
 
@@ -412,66 +489,90 @@ Defines the Docker image used to run CustomAI.
 
 **`docker-compose.yml`**
 
-Provides Docker Compose configuration for running the services.
+Provides Docker Compose configuration for running the application and its services.
 
 **`setup.sh`**
 
-Automates the local Python environment setup and starts the application.
+Automates the local Python environment setup and starts the server.
 
 ---
 
 # Current Limitations
 
-CustomAI is currently a small experimental project and has several limitations.
+CustomAI is currently a small experimental project.
 
-It does **not** currently provide:
+The current implementation does **not yet provide**:
 
+* Full Home Assistant control
+* LLM tool/function calling
+* Home Assistant entity discovery
+* Home Assistant state awareness
+* Streaming responses
 * Multiple LLM providers
 * Provider/model routing
-* Streaming responses
 * Token usage statistics
-* Tool/function calling
-* Full OpenAI API compatibility
 * Authentication
-* Advanced request parameters
+* Full OpenAI API compatibility
 * Production-grade error handling
 * Production security configuration
-* A significant abstraction layer beyond forwarding requests
+* Persistent conversation memory
 
-In particular, **Ollama already provides an OpenAI-compatible API**, so the current implementation can often be replaced by communicating with Ollama directly.
+Additionally, Ollama already provides an OpenAI-compatible API, meaning the current CustomAI implementation can often be replaced by communicating with Ollama directly.
 
-This is a known limitation of the current project and one of the main areas for future development.
+This is a known limitation of the current implementation.
+
+The project's intended value comes from the planned **Home Assistant integration and AI-driven interaction layer**, rather than simply forwarding requests to Ollama.
 
 ---
 
 # Future Improvements
 
-The main goal for future development is to make CustomAI more than a simple proxy.
+The main goal is to evolve CustomAI from a simple LLM API wrapper into an AI interface for Home Assistant.
 
-Potential improvements include:
+### Home Assistant
 
+* [ ] Connect to Home Assistant API
+* [ ] Authenticate with Home Assistant
+* [ ] Discover available entities
+* [ ] Read entity states
+* [ ] Call Home Assistant services
+* [ ] Control lights, switches, climate, media, etc.
+* [ ] Provide relevant entity information to the LLM
+* [ ] Add permission controls for sensitive actions
+
+### LLM
+
+* [ ] Implement tool/function calling
+* [ ] Allow the LLM to invoke Home Assistant actions
+* [ ] Add conversation context
 * [ ] Support multiple LLM providers
-* [ ] Add OpenAI backend support
-* [ ] Add provider/model routing
-* [ ] Allow switching between local and cloud models
-* [ ] Add automatic fallback between providers
-* [ ] Add streaming responses
+* [ ] Support local and cloud models
+* [ ] Add model/provider routing
+* [ ] Add fallback providers
+
+### API
+
 * [ ] Improve OpenAI API compatibility
+* [ ] Add streaming responses
 * [ ] Add authentication
 * [ ] Add token usage tracking
-* [ ] Add request logging and monitoring
-* [ ] Add rate limiting
-* [ ] Move configuration to environment variables
+* [ ] Improve error handling
 * [ ] Add automated tests
-* [ ] Improve Docker Compose configuration
-* [ ] Add Home Assistant integration
 * [ ] Improve API documentation
+
+### Infrastructure
+
+* [ ] Improve Docker Compose configuration
+* [ ] Improve configuration management
+* [ ] Add environment-variable based secrets
+* [ ] Improve CI/CD
+* [ ] Add monitoring and request logging
 
 ---
 
 # Learning Goals
 
-CustomAI was created as a practical way to learn about several areas of software and AI development.
+CustomAI was created as a practical project for learning about modern backend and AI development.
 
 ### Backend Development
 
@@ -481,25 +582,36 @@ CustomAI was created as a practical way to learn about several areas of software
 * Structuring a Python backend
 * Asynchronous HTTP communication
 
-### AI Integration
+### AI Development
 
-* Communicating with locally hosted LLMs
-* Working with the Ollama API
-* Understanding LLM provider APIs
-* Building an abstraction layer around an LLM
+* Working with locally hosted LLMs
+* Communicating with Ollama
+* Understanding LLM APIs
+* Prompt engineering
+* Exploring LLM tool/function calling
+* Connecting LLMs to external systems
+
+### Home Automation
+
+* Working with the Home Assistant API
+* Reading entity states
+* Calling Home Assistant services
+* Translating natural language into device actions
+* Building an AI-driven smart-home interface
 
 ### API Design
 
 * Understanding REST interfaces
 * Designing OpenAI-compatible endpoints
-* Using configurable API base URLs
-* Understanding provider-independent API interfaces
+* Creating provider-independent interfaces
+* Building abstractions around external services
 
 ### Infrastructure
 
 * Containerizing applications with Docker
-* Connecting services through Docker networking
-* Running an AI backend as a separate service
+* Connecting multiple services
+* Managing configuration and secrets
+* Running AI services locally
 
 ---
 
@@ -509,11 +621,26 @@ CustomAI was created as a practical way to learn about several areas of software
 
 CustomAI is an **unfinished personal learning project**.
 
-The current implementation should not be considered production-ready, and its current role as an Ollama API wrapper provides limited additional functionality compared to using Ollama directly.
+The current implementation is primarily an experimental FastAPI layer around an Ollama-hosted LLM. It should **not** be considered production-ready.
 
-The purpose of the project is to provide a foundation for learning how to build an AI API service and, eventually, how to build a useful abstraction layer across multiple LLM providers.
+The main long-term goal is to connect an LLM with Home Assistant and create a flexible natural-language interface for controlling and querying a smart home.
 
-The project may contain incomplete features, experimental code, and breaking changes.
+The project is intended to be a practical learning exercise covering:
+
+```text
+FastAPI
+   │
+   ├── REST API
+   │
+   ├── LLM Integration
+   │      └── Ollama / Qwen
+   │
+   ├── Home Assistant API
+   │
+   └── AI Tool Integration
+```
+
+Expect incomplete functionality, experimental code, and breaking changes as development continues.
 
 ---
 
