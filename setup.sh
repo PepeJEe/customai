@@ -12,4 +12,4 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Execute the server
-./main.py
+python main.py
