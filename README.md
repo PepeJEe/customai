@@ -240,9 +240,9 @@ git clone https://github.com/PepeJEe/customai.git
 cd customai
 ```
 
-The repository includes a `setup.sh` script that automates the local Python setup.
+The repository includes a `setup.sh` script that automatically creates a Python virtual environment, installs the required dependencies, and starts the server.
 
-Make it executable:
+Make the script executable:
 
 ```bash
 chmod +x setup.sh
@@ -254,12 +254,12 @@ Run the setup script:
 ./setup.sh
 ```
 
-The script will:
+The script performs the following steps:
 
-1. Create a Python virtual environment
-2. Activate the virtual environment
-3. Install dependencies from `requirements.txt`
-4. Start the CustomAI server
+1. Creates a Python virtual environment in `venv/`
+2. Activates the virtual environment
+3. Installs the dependencies from `requirements.txt`
+4. Starts the CustomAI server
 
 ### `setup.sh`
 
@@ -278,7 +278,20 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Execute the server
-./main.py
+python main.py
+```
+
+> **Note:** The virtual environment is created in the project's `venv/` directory. The `setup.sh` script can be run again if needed; however, it will recreate the virtual environment each time.
+
+### Manual installation
+
+If you prefer to set up the project manually:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python main.py
 ```
 
 ---
