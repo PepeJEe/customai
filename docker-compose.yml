@@ -1,0 +1,21 @@
+services:
+  app:
+    image: ghcr.io/pepejee/customai:latest
+    ports:
+      - "8010:8010"
+    depends_on:
+      - ollama
+    volumes:
+      - ./logs:/app/logs
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  ollama_data:
